@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.1.5+1.20.1] - 2024.05.06
+### Fixed
+- [Forge] Fixed crash with Embeddium++ 1.2.10+ [#27](https://github.com/illusivesoulworks/radiantgear/issues/27)
+
 ## [2.1.4+1.20.1] - 2024.03.06
 ### Changed
 - [Forge] Updated to and requires RyoamicLights 0.2.0+ [#21](https://github.com/illusivesoulworks/radiantgear/issues/21)

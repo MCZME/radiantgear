@@ -2,8 +2,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 This is a copy of the changelog for the most recent version. For the full version history, go [here](https://github.com/TheIllusiveC4/CuriousLights/blob/1.20.x/CHANGELOG.md).
 
-## [2.1.4+1.20.1] - 2024.03.06
-### Changed
-- [Forge] Updated to and requires RyoamicLights 0.2.0+ [#21](https://github.com/illusivesoulworks/radiantgear/issues/21)
+## [2.1.5+1.20.1] - 2024.05.06
 ### Fixed
-- [Forge] Fixed crash with Embeddium++ 1.2.4+ [#22](https://github.com/illusivesoulworks/radiantgear/issues/22)
+- [Forge] Fixed crash with Embeddium++ 1.2.10+ [#27](https://github.com/illusivesoulworks/radiantgear/issues/27)
