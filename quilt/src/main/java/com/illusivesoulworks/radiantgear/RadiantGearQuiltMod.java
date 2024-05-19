@@ -18,6 +18,7 @@
 package com.illusivesoulworks.radiantgear;
 
 import com.illusivesoulworks.radiantgear.integration.lambdynlights.LambDynLightsModule;
+import com.illusivesoulworks.radiantgear.integration.ryoamiclights.RyoamicModule;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.loader.api.QuiltLoader;
 import org.quiltmc.qsl.base.api.entrypoint.client.ClientModInitializer;
@@ -29,6 +30,10 @@ public class RadiantGearQuiltMod implements ClientModInitializer {
 
     if (QuiltLoader.isModLoaded("lambdynlights")) {
       LambDynLightsModule.setup();
+    }
+
+    if (QuiltLoader.isModLoaded("ryoamiclights")) {
+      RyoamicModule.setup();
     }
   }
 }
