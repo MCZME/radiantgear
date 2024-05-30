@@ -32,6 +32,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkConstants;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 @Mod(RadiantGearConstants.MOD_ID)
 public class RadiantGearForgeMod {
@@ -49,8 +50,12 @@ public class RadiantGearForgeMod {
     isArsNouveauLoaded = modList.isLoaded("ars_nouveau");
     isRyoamicLoaded = modList.isLoaded("ryoamiclights");
     // Embeddium++ removed their dynamic lighting in 1.2.4 but this mod should still be able to load
-    isEmbeddiumPlusLoaded = modList.isLoaded("embeddiumplus") &&
-        modList.getModFileById("embeddiumplus").versionString().compareTo("1.2.4") < 0;
+    if (modList.isLoaded("embeddiumplus")) {
+      DefaultArtifactVersion maxVersion = new DefaultArtifactVersion("1.2.4");
+      DefaultArtifactVersion currentVersion =
+          new DefaultArtifactVersion(modList.getModFileById("embeddiumplus").versionString());
+      isEmbeddiumPlusLoaded = currentVersion.compareTo(maxVersion) < 0;
+    }
     IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
     eventBus.addListener(this::setup);
     eventBus.addListener(this::clientSetup);
