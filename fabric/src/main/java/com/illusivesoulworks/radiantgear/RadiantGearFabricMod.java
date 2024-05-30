@@ -18,6 +18,7 @@
 package com.illusivesoulworks.radiantgear;
 
 import com.illusivesoulworks.radiantgear.integration.lambdynlights.LambDynLightsModule;
+import com.illusivesoulworks.radiantgear.integration.ryoamiclights.RyoamicModule;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -28,6 +29,10 @@ public class RadiantGearFabricMod implements ClientModInitializer {
 
     if (FabricLoader.getInstance().isModLoaded("lambdynlights")) {
       LambDynLightsModule.setup();
+    }
+
+    if (FabricLoader.getInstance().isModLoaded("ryoamiclights")) {
+      RyoamicModule.setup();
     }
   }
 }
