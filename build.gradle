@@ -187,23 +187,16 @@ def publishDiscord() {
     }
 }
 
-tasks.getByPath(':quilt:publishCurseForge').configure {
-    mustRunAfter(':quilt:assemble')
+def ordered(String... dependencyPaths) {
+    def dependencies = dependencyPaths.collect { tasks.getByPath(it) }
+    for (int i = 0; i < dependencies.size() - 1; i++) {
+        dependencies[i + 1].mustRunAfter(dependencies[i])
+    }
+    return dependencies
 }
-tasks.getByPath(':fabric:publishCurseForge').configure {
-    mustRunAfter(':fabric:assemble')
-    mustRunAfter(':quilt:publishCurseForge')
-}
-tasks.getByPath(':forge:publishCurseForge').configure {
-    mustRunAfter(':forge:assemble')
-    mustRunAfter(':fabric:publishCurseForge')
-}
-tasks.getByPath(':fabric:modrinth').mustRunAfter(':quilt:modrinth')
-tasks.getByPath(':forge:modrinth').mustRunAfter(':fabric:modrinth')
 
-tasks.register('publishFabricForgeQuilt') {
-    dependsOn ':fabric:modrinth', ':forge:modrinth', ':quilt:modrinth'
-    dependsOn ':fabric:publishCurseForge', ':forge:publishCurseForge', ':quilt:publishCurseForge'
+tasks.register('publishFabric') {
+    dependsOn ordered(':fabric:modrinth', ':fabric:publishCurseForge')
 
     doLast {
         publishDiscord()
@@ -211,8 +204,47 @@ tasks.register('publishFabricForgeQuilt') {
 }
 
 tasks.register('publishForge') {
-    dependsOn ':forge:modrinth'
-    dependsOn ':forge:publishCurseForge'
+    dependsOn ordered(':forge:modrinth', ':forge:publishCurseForge')
+
+    doLast {
+        publishDiscord()
+    }
+}
+
+tasks.register('publishQuilt') {
+    dependsOn ordered(':quilt:modrinth', ':quilt:publishCurseForge')
+
+    doLast {
+        publishDiscord()
+    }
+}
+
+tasks.register('publishFabricForge') {
+    dependsOn ordered(':fabric:modrinth', ':fabric:publishCurseForge', ':forge:modrinth', 'forge:publishCurseForge')
+
+    doLast {
+        publishDiscord()
+    }
+}
+
+tasks.register('publishForgeQuilt') {
+    dependsOn ordered(':quilt:modrinth', ':quilt:publishCurseForge', ':forge:modrinth', ':forge:publishCurseForge')
+
+    doLast {
+        publishDiscord()
+    }
+}
+
+tasks.register('publishFabricQuilt') {
+    dependsOn ordered(':quilt:modrinth', ':quilt:publishCurseForge', ':fabric:modrinth', ':fabric:publishCurseForge')
+
+    doLast {
+        publishDiscord()
+    }
+}
+
+tasks.register('publishFabricForgeQuilt') {
+    dependsOn ordered(':quilt:modrinth', ':quilt:publishCurseForge', ':fabric:modrinth', ':fabric:publishCurseForge', ':forge:modrinth', ':forge:publishCurseForge')
 
     doLast {
         publishDiscord()
