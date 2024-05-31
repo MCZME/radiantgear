@@ -95,6 +95,10 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
     "${release_versions}".split(',').each {
         mainFile.addGameVersion("${it}")
     }
+    mainFile.addRequirement("curios")
+    mainFile.addOptional("dynamic-lights")
+    mainFile.addOptional("lucent")
+    mainFile.addOptional("ryoamiclights")
     mainFile.withAdditionalFile(sourcesJar)
 
     doLast {
@@ -114,6 +118,11 @@ modrinth {
     uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
     additionalFiles = [sourcesJar]
     gameVersions = "${release_versions}".split(",") as List<String>
+    dependencies {
+        required.project "curios"
+        optional.project "lucent"
+        optional.project "ryoamiclights"
+    }
 }
 
 tasks.modrinth.doLast {
