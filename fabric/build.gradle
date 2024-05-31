@@ -1,20 +1,14 @@
 plugins {
-    id 'fabric-loom' version '1.2-SNAPSHOT'
-    id 'maven-publish'
+    id 'java'
     id 'idea'
-    id 'net.darkhax.curseforgegradle' version '1.+'
+    id 'maven-publish'
+    id 'fabric-loom' version '1.5-SNAPSHOT'
     id 'com.modrinth.minotaur' version '2.+'
+    id 'net.darkhax.curseforgegradle' version '1.+'
 }
-
-archivesBaseName = "${mod_id}-fabric"
-
-repositories {
-    maven {
-        name = "Ladysnake Libs"
-        url = "https://ladysnake.jfrog.io/artifactory/mods"
-    }
+base {
+    archivesName = "${mod_id}-fabric"
 }
-
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings(loom.layered {
@@ -24,14 +18,13 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-    implementation project(":common")
+    compileOnly project(":common")
 
     modImplementation "dev.emi:trinkets:${trinkets_version}"
     modCompileOnly "dev.lambdaurora:lambdynamiclights:${ldl_version}"
     modRuntimeOnly "dev.lambdaurora:lambdynamiclights:${ldl_version}"
-    modCompileOnly "curse.maven:ryoamiclights-913587:${rdl_file}"
-    modRuntimeOnly "curse.maven:ryoamiclights-913587:${rdl_file}"
-    modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${cca_version}"
+    modCompileOnly "curse.maven:ryoamiclights-913587:${rdl_fabric_file}"
+    modRuntimeOnly "curse.maven:ryoamiclights-913587:${rdl_fabric_file}"
 
     modRuntimeOnly("com.terraformersmc:modmenu:${modmenu_version}") {
         transitive = false
@@ -39,6 +32,12 @@ dependencies {
 }
 
 loom {
+    if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
+        accessWidenerPath.set(project(":common").file("src/main/resources/${mod_id}.accesswidener"))
+    }
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
+    }
     runs {
         client {
             client()
@@ -55,40 +54,27 @@ loom {
     }
 }
 
+tasks.withType(JavaCompile).configureEach {
+    source(project(":common").sourceSets.main.allSource)
+}
+tasks.withType(Javadoc).configureEach {
+    source(project(":common").sourceSets.main.allJava)
+}
+tasks.named("sourcesJar", Jar) {
+    from(project(":common").sourceSets.main.allSource)
+}
 
 processResources {
     from project(":common").sourceSets.main.resources
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand 'version': project.version, 'fabric_mc_version_range': project.fabric_mc_version_range, 'license': project.license,
-                'mod_id': project.mod_id, 'mod_author': project.mod_author, 'mod_description': project.mod_description,
-                'mod_name': project.mod_name, 'issue_tracker': project.issue_tracker
-    }
-
-    filesMatching("pack.mcmeta") {
-        expand 'mod_name': project.mod_name
-    }
-
-    filesMatching('*.mixins.json') {
-        expand "refmap_target": "${archivesBaseName}-"
-    }
-}
-
-tasks.withType(JavaCompile) {
-    source(project(":common").sourceSets.main.allSource)
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId project.archivesBaseName
-            version project.version
+            artifactId base.archivesName.get()
             from components.java
         }
     }
-
     repositories {
         maven {
             url "file://" + System.getenv("local_maven")
@@ -107,8 +93,6 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
         mainFile.addGameVersion("${it}")
     }
     mainFile.addRequirement("fabric-api")
-	mainFile.addRequirement("trinkets")
-    mainFile.addOptional("lambdynamiclights")
     mainFile.withAdditionalFile(sourcesJar)
 
     doLast {
@@ -130,8 +114,6 @@ modrinth {
     gameVersions = "${release_versions}".split(",") as List<String>
     dependencies {
         required.project "fabric-api"
-        required.project "trinkets"
-        optional.project "lambdynamiclights"
     }
 }
 

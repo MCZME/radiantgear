@@ -15,32 +15,37 @@
  * License along with Radiant Gear.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.illusivesoulworks.radiantgear.integration.lambdynlights;
+package com.illusivesoulworks.radiantgear.integration.arsnouveau;
 
+import com.hollingsworth.arsnouveau.common.light.DynamLightUtil;
+import com.hollingsworth.arsnouveau.common.light.LightManager;
 import com.illusivesoulworks.radiantgear.client.BaseLambDynLightsModule;
-import dev.lambdaurora.lambdynlights.LambDynLights;
-import dev.lambdaurora.lambdynlights.api.DynamicLightHandlers;
 import java.util.function.Function;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import org.quiltmc.qsl.entity.event.api.client.ClientEntityLoadEvents;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
-public class LambDynLightsModule extends BaseLambDynLightsModule {
+public class ArsNouveauModule extends BaseLambDynLightsModule {
 
   public static void setup() {
-    LambDynLightsModule module = new LambDynLightsModule();
-    ClientEntityLoadEvents.AFTER_LOAD.register(module::registerEntity);
+    ArsNouveauModule module = new ArsNouveauModule();
+    NeoForge.EVENT_BUS.addListener(module::entityJoin);
+  }
+
+  private void entityJoin(final EntityJoinLevelEvent evt) {
+    this.registerEntity(evt.getEntity(), evt.getLevel());
   }
 
   @Override
   protected int getLuminance(ItemStack stack, boolean isInWater) {
-    return LambDynLights.getLuminanceFromItemStack(stack, isInWater);
+    return DynamLightUtil.fromItemLike(stack.getItem());
   }
 
   @Override
   protected void registerDynamicLightHandler(EntityType<?> type,
                                              Function<Entity, Integer> handler) {
-    DynamicLightHandlers.registerDynamicLightHandler(type, handler::apply);
+    LightManager.register(type, handler::apply);
   }
 }

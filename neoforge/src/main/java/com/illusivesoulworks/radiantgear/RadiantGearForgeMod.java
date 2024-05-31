@@ -17,37 +17,60 @@
 
 package com.illusivesoulworks.radiantgear;
 
+import com.illusivesoulworks.radiantgear.integration.arsnouveau.ArsNouveauModule;
 import com.illusivesoulworks.radiantgear.integration.dynamiclights.DynamicLightsModule;
+import com.illusivesoulworks.radiantgear.integration.dynamiclightsreforged.DLReforgedModule;
+import com.illusivesoulworks.radiantgear.integration.ryoamiclights.RyoamicModule;
 import java.util.Objects;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.IExtensionPoint;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.IExtensionPoint;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 @Mod(RadiantGearConstants.MOD_ID)
 public class RadiantGearForgeMod {
 
   private static boolean isDynamicLightsLoaded = false;
+  private static boolean isDLReforgedLoaded = false;
+  private static boolean isArsNouveauLoaded = false;
+  private static boolean isRyoamicLoaded = false;
 
-  public RadiantGearForgeMod() {
+  public RadiantGearForgeMod(IEventBus eventBus) {
     ModList modList = ModList.get();
     isDynamicLightsLoaded = modList.isLoaded("dynamiclights");
-    IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    isDLReforgedLoaded = modList.isLoaded("dynamiclightsreforged");
+    isArsNouveauLoaded = modList.isLoaded("ars_nouveau");
+    isRyoamicLoaded = modList.isLoaded("ryoamiclights");
     eventBus.addListener(this::setup);
+    eventBus.addListener(this::clientSetup);
     ModLoadingContext context = ModLoadingContext.get();
     context.registerExtensionPoint(IExtensionPoint.DisplayTest.class,
         () -> new IExtensionPoint.DisplayTest(() -> getRemoteVersion(context),
             (incoming, isNetwork) -> acceptsServer(context, incoming)));
-
   }
 
   private void setup(final FMLCommonSetupEvent evt) {
 
     if (isDynamicLightsLoaded) {
       DynamicLightsModule.setup();
+    }
+  }
+
+  private void clientSetup(final FMLClientSetupEvent evt) {
+
+    if (isDLReforgedLoaded) {
+      DLReforgedModule.setup();
+    }
+
+    if (isRyoamicLoaded) {
+      RyoamicModule.setup();
+    }
+
+    if (isArsNouveauLoaded) {
+      ArsNouveauModule.setup();
     }
   }
 

@@ -1,28 +1,28 @@
 package com.illusivesoulworks.radiantgear.platform.services;
 
-import dev.emi.trinkets.api.SlotReference;
-import dev.emi.trinkets.api.TrinketsApi;
 import java.util.function.Function;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
+import top.theillusivec4.curios.api.CuriosApi;
 
-public class LambDynamicLightsTrinkets implements ILambDynamicLights {
+public class LambDynamicLightsCurios implements ILambDynamicLights {
 
   @Override
   public boolean hasAccessories(LivingEntity livingEntity) {
-    return TrinketsApi.getTrinketComponent(livingEntity).isPresent();
+    return true;
   }
 
   @Override
   public int getLuminance(Entity entity, Function<ItemStack, Integer> stackLuminance) {
 
     if (entity instanceof LivingEntity livingEntity) {
-      return TrinketsApi.getTrinketComponent(livingEntity).map(trinketComponent -> {
+      return CuriosApi.getCuriosInventory(livingEntity).map(inv -> {
+        IItemHandler itemHandler = inv.getEquippedCurios();
         int luminance = 0;
-        for (Tuple<SlotReference, ItemStack> slotReferenceItemStackTuple : trinketComponent.getAllEquipped()) {
-          luminance = Math.max(luminance, stackLuminance.apply(slotReferenceItemStackTuple.getB()));
+        for (int i = 0; i < itemHandler.getSlots(); i++) {
+          luminance = Math.max(luminance, stackLuminance.apply(itemHandler.getStackInSlot(i)));
         }
         return luminance;
       }).orElse(0);

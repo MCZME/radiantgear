@@ -29,8 +29,9 @@ import javax.annotation.Nullable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandler;
 import top.theillusivec4.curios.api.CuriosApi;
 
 @LucentPlugin
@@ -54,10 +55,10 @@ public class LucentModule implements ILucentPlugin {
     AtomicInteger curiosLightLevel = new AtomicInteger();
 
     if (entity instanceof LivingEntity livingEntity) {
-      CuriosApi.getCuriosHelper().getEquippedCurios(livingEntity).ifPresent(curios -> {
-
-        for (int i = 0; i < curios.getSlots(); i++) {
-          ItemStack stack = curios.getStackInSlot(i);
+      CuriosApi.getCuriosInventory(livingEntity).ifPresent(inv -> {
+        IItemHandler itemHandler = inv.getEquippedCurios();
+        for (int i = 0; i < itemHandler.getSlots(); i++) {
+          ItemStack stack = itemHandler.getStackInSlot(i);
           curiosLightLevel.set(Math.max(curiosLightLevel.get(), ItemLightingRegistry.get(stack)));
         }
       });

@@ -5,8 +5,8 @@ import java.util.function.Function;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import org.thinkingstudio.ryoamiclights.RyoamicLights;
 import org.thinkingstudio.ryoamiclights.api.DynamicLightHandlers;
 
@@ -14,7 +14,7 @@ public class RyoamicModule extends BaseLambDynLightsModule {
 
   public static void setup() {
     RyoamicModule module = new RyoamicModule();
-    MinecraftForge.EVENT_BUS.addListener(module::entityJoin);
+    NeoForge.EVENT_BUS.addListener(module::entityJoin);
   }
 
   private void entityJoin(final EntityJoinLevelEvent evt) {
