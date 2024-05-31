@@ -29,7 +29,7 @@ public abstract class BaseLambDynLightsModule {
         this.processed.add(type);
 
         if (Services.LAMBDYNAMIC.hasAccessories(livingEntity)) {
-          RadiantGearConstants.LOG.debug("Registering dynamic accessory lights for " + type);
+          RadiantGearConstants.LOG.debug("Registering dynamic accessory lights for {}", type);
           this.registerDynamicLightHandler(type,
               entity1 -> Services.LAMBDYNAMIC.getLuminance(entity1,
                   (stack) -> this.getLuminance(stack, entity1.isInWater())));

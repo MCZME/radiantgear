@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.Entity;
@@ -37,8 +38,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.items.IItemHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -57,27 +60,31 @@ public class DynamicLightsModule {
     private static ItemConfigHelper notWaterProofItems;
     private final Map<Player, CuriosLightSourceContainer> playerLightsMap = new HashMap<>();
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void serverStartEvent(ServerAboutToStartEvent evt) {
+      MinecraftServer server = evt.getServer();
+      RegistryAccess registryAccess = server.registryAccess();
+
       LightConfig defaultConfig = new LightConfig();
       defaultConfig.getItemsList()
-          .add(ItemConfigHelper.fromItemStack(new ItemStack(Blocks.TORCH), 14));
+          .add(ItemConfigHelper.fromItemStack(new ItemStack(Blocks.TORCH), 14, registryAccess));
       defaultConfig.getItemsList()
-          .add(ItemConfigHelper.fromItemStack(new ItemStack(Blocks.GLOWSTONE), 15));
+          .add(ItemConfigHelper.fromItemStack(new ItemStack(Blocks.GLOWSTONE), 15, registryAccess));
       defaultConfig.getNotWaterProofList()
-          .add(ItemConfigHelper.fromItemStack(new ItemStack(Blocks.TORCH), 0));
-      MinecraftServer server = evt.getServer();
+          .add(ItemConfigHelper.fromItemStack(new ItemStack(Blocks.TORCH), 0, registryAccess));
+
       File configFile = new File(server.getFile(""),
           File.separatorChar + "config" + File.separatorChar + "dynamiclights_selflight.cfg");
       try {
         LightConfig config =
             GsonConfig.loadConfigWithDefault(LightConfig.class, configFile, defaultConfig);
         if (config == null) {
-          RadiantGearConstants.LOG.error("CuriosLightSource failed parsing config file...");
-          return;
+          throw new UnsupportedOperationException(
+              "CuriosLightSource failed parsing config file somehow...");
         }
-        itemsMap = new ItemConfigHelper(config.getItemsList(), LOGGER);
-        notWaterProofItems = new ItemConfigHelper(config.getNotWaterProofList(), LOGGER);
+        itemsMap = new ItemConfigHelper(config.getItemsList(), LOGGER, registryAccess);
+        notWaterProofItems =
+            new ItemConfigHelper(config.getNotWaterProofList(), LOGGER, registryAccess);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -95,7 +102,8 @@ public class DynamicLightsModule {
         CuriosLightSourceContainer curiosLightSourceContainer = playerLightsMap.get(player);
 
         if (curiosLightSourceContainer == null) {
-          RadiantGearConstants.LOG.debug("Built new CuriosLightSourceContainer for player {}", player);
+          RadiantGearConstants.LOG.debug("Built new CuriosLightSourceContainer for player {}",
+              player);
           curiosLightSourceContainer = new CuriosLightSourceContainer(player);
           playerLightsMap.put(player, curiosLightSourceContainer);
         }
@@ -103,14 +111,15 @@ public class DynamicLightsModule {
         boolean isUnderwater = checkPlayerWater(player);
         curiosLightSourceContainer.lightLevel = 0;
         CuriosLightSourceContainer finalCuriosLightSourceContainer = curiosLightSourceContainer;
-        CuriosApi.getCuriosHelper().getEquippedCurios(player).ifPresent(curios -> {
-          for (int i = 0; i < curios.getSlots(); i++) {
-            ItemStack stack = curios.getStackInSlot(i);
+        CuriosApi.getCuriosInventory(player).ifPresent(inv -> {
+          IItemHandler itemHandler = inv.getEquippedCurios();
+          for (int i = 0; i < itemHandler.getSlots(); i++) {
+            ItemStack stack = itemHandler.getStackInSlot(i);
 
             if (!stack.isEmpty()) {
               finalCuriosLightSourceContainer.lightLevel =
                   Math.max(finalCuriosLightSourceContainer.lightLevel,
-                      getLightFromItemStack(stack, isUnderwater));
+                      getLightFromItemStack(stack, isUnderwater, player.registryAccess()));
             }
           }
         });
@@ -139,9 +148,10 @@ public class DynamicLightsModule {
       return player.isEyeInFluid(FluidTags.WATER);
     }
 
-    private int getLightFromItemStack(ItemStack stack, boolean isUnderwater) {
+    private int getLightFromItemStack(ItemStack stack, boolean isUnderwater,
+                                      RegistryAccess registryAccess) {
 
-      if (isUnderwater && (notWaterProofItems.getLightLevel(stack) > 0 ||
+      if (isUnderwater && (notWaterProofItems.getLightLevel(stack, registryAccess) > 0 ||
           stack.getTags().anyMatch(rl -> rl.location().equals(DynamicLights.NOT_WATERPROOF_TAG)))) {
         return 0;
       }
@@ -150,7 +160,7 @@ public class DynamicLightsModule {
       if (level > 0 && level <= 15) {
         return level;
       }
-      return itemsMap.getLightLevel(stack);
+      return itemsMap.getLightLevel(stack, registryAccess);
     }
 
     private void enableLight(CuriosLightSourceContainer container) {
